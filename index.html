@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang='end'>
+
+<head>
+  <title>Query Log</title>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #form {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 0.25rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      height: 3rem;
+      box-sizing: border-box;
+      backdrop-filter: blur(10px);
+    }
+
+    #input {
+      border: none;
+      padding: 0 1rem;
+      flex-grow: 1;
+      border-radius: 2rem;
+      margin: 0.25rem;
+    }
+
+    #input:focus {
+      outline: none;
+    }
+
+    #form>button {
+      background: #333;
+      border: none;
+      padding: 0 1rem;
+      margin: 0.25rem;
+      border-radius: 3px;
+      outline: none;
+      color: #fff;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages>li {
+      padding: 0.5rem 1rem;
+    }
+
+    #messages>li:nth-child(odd) {
+      background: #efefef;
+    }
+  </style>
+
+  <script src='https://code.jquery.com/jquery-3.3.1.slim.min.js'
+    integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo'
+    crossorigin='anonymous'></script>
+  <script src='https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js'
+    integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1'
+    crossorigin='anonymous'></script>
+  <script src='https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js'
+    integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM'
+    crossorigin='anonymous'></script>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css'
+    integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>
+  <link rel='stylesheet' type'' href='styles.css' />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-8" style="padding-right: 1rem;">
+        <div class='card mt-5'>
+          <div class='card-body'>
+            <h5 class='card-title'>Some nice headline</h5>
+            <p class='card-text'>Our collected Data:
+            <p>
+            <div class='container' id='dashboard-plot-view-wrapper'>
+              <div class='dashboard-plot-container-wrapper'>
+                <div class='dashboard-plot-container-sm'>
+                  <canvas id='dashboard-plot-canvas-2' class='canvas'></canvas>
+                </div>
+                <div class='dashboard-plot-container-sm'>
+                  <canvas id='dashboard-plot-canvas-3' class='canvas'></canvas>
+                </div>
+                <div class='dashboard-plot-container-sm'>
+                  <canvas id='dashboard-plot-canvas-4' class='canvas'></canvas>
+                </div>
+                <div class='dashboard-plot-container-sm'>
+                  <canvas id='dashboard-plot-canvas-5' class='canvas'></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4" style="padding-left: 0px; height:30rem">
+        <div class='card bg-light mr-5 mt-5'>
+          <div class='card-body'>
+            <h5 class='card-title'>Query Log</h5>
+            <div id='logdiv' style='overflow-y: scroll; height:400px;'>
+              <p class="card-text">
+              <ul id='messages'></ul>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form id='form' action=''>
+    <input id='input' autocomplete='off' /><button>Send</button>
+  </form>
+
+  <script src='/socket.io/socket.io.js'></script>
+  <script type="module">
+    import updatePieChart from './chart.js';
+    let 
+      socket = io(),
+      messages = document.getElementById('messages'),
+      form = document.getElementById('form'),
+      input = document.getElementById('input');
+
+    let received_data = {
+      smiles: {
+        'bad': 0,
+        'medium': 0,
+        'good': 0
+      },
+      gender: {},
+      emotion_state: {},
+      pleasure_state: {}
+
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value);
+        input.value = '';
+      }
+    });
+
+    function handle_topic(data) {
+      data = JSON.parse(data);
+      let data2Plot;
+      try {
+        if (data.topic === 'smile_state') {
+          if (typeof received_data.smiles[data.state] == 'undefined') received_data.smiles[data.state] = 1;
+          else received_data.smiles[data.state]++;
+          data2Plot = received_data.smiles;
+        } else if (data.topic === 'gender') {
+          if (typeof received_data.gender[data.gender] == 'undefined') received_data.gender[data.gender] = 1;
+          else received_data.gender[data.gender]++;
+          data2Plot = received_data.gender;
+        } else if (data.topic === 'pleasure_state') {
+          if (typeof received_data.pleasure_state[data.state] == 'undefined') received_data.pleasure_state[data.state] = 1;
+          else received_data.pleasure_state[data.state]++;
+          data2Plot = received_data.pleasure_state;
+        } else if (data.topic === 'emotion_state') {
+          if (typeof received_data.emotion_state[data.state] == 'undefined') received_data.emotion_state[data.state] = 1;
+          else received_data.emotion_state[data.state]++;
+          data2Plot = received_data.emotion_state;
+          console.log('!')
+        } else if (data.topic === 'phrase') {
+          if (typeof received_data.phrases[data.state] == 'undefined') eceived_data.phrases[data.state] = 1;
+          else received_data.phrases[data.state]++;
+          data2Plot = received_data.phrases;
+        }
+        updatePieChart(data.topic, data2Plot)
+      } catch (e) { }
+    }
+
+    socket.on('chat message', (msg) => {
+      try {
+        msg = JSON.parse(msg);
+        handle_topic(msg);
+      } catch (e) { }
+
+      var date = new Date();
+      const dateStr =
+        ("00" + (date.getMonth() + 1)).slice(-2) + "." +
+        ("00" + date.getDate()).slice(-2) + "." +
+        date.getFullYear() + " " +
+        ("00" + date.getHours()).slice(-2) + ":" +
+        ("00" + date.getMinutes()).slice(-2) + ":" +
+        ("00" + date.getSeconds()).slice(-2);
+
+      let item = document.createElement('li');
+      item.textContent = `${dateStr}: ${msg}`;
+      messages.appendChild(item);
+      document.getElementById('logdiv').scrollTo(0, document.body.scrollHeight);
+    });
+  </script>
+</body>
+
+</html>
