@@ -1,10 +1,34 @@
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const {
-    Server
-} = require("socket.io");
+/**
+ *  Entry / Start Point of the Websocket Applicartion 
+ *   + Setup
+ *   + Create App
+ *   + Run App
+ *  
+ * @version 1.0
+ * @author Benjamin Thomas Schwertfeger
+ * @email development@b-schwertfeger.de
+ * @github https://github.com/ProjectPepperHSB/WebsocketServer
+ * /
+
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * -----> I M P O R T S <----- ----- ----- */
+
+const
+    express = require('express'),
+    http = require('http'),
+    {
+        Server
+    } = require("socket.io");
+
+const
+    app = express(),
+    server = http.createServer(app),
+    io = new Server(server);
+
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * -----> S E T T I N G S <----- ----- ----- */
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -12,10 +36,16 @@ app.use(express.urlencoded({
 }));
 app.use(express.static('static'))
 
-const io = new Server(server);
+const
+    PORT = process.env.PORT || 3000,
+    undefined = 'undefined'
+
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * ----->  R O U T E S <----- ----- ----- */
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(`${__dirname}/index.html`);
 });
 
 app.get('/api/data', (req, res) => {
@@ -31,7 +61,7 @@ app.get('/api/data', (req, res) => {
 })
 app.post('/api/data', (req, res) => {
     const data = req.body.data;
-    if (typeof JSON.parse(data) == 'undefined') res.status(400).end();
+    if (typeof JSON.parse(data) === undefined) res.status(400).end();
     else {
         // try {
         io.emit('chat message', JSON.stringify(req.body.data))
@@ -45,18 +75,31 @@ app.post('/api/data', (req, res) => {
     }
 });
 
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * -----> W E B S O C K E T - E V E N T - H A N D L E R <----- ----- ----- */
+
 io.on('connection', (socket) => {
     console.log('A user connected!');
-    // socket.broadcast.emit('hi')
+
     socket.on('Disconnect', () => {
         console.log('User disconnected');
     });
+
     socket.on('chat message', (msg) => {
         io.emit('chat message', msg);
         console.log(msg)
     });
 });
 
-server.listen(3000, () => {
-    console.log('listening on *:3000');
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * -----> RUN APP <----- ----- ----- */
+
+server.listen(PORT, () => {
+    console.log('listening on http://localhost:3000');
 });
+
+/* * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * * 
+ * * * ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- * * * 
+ * * * -----> E O F <----- ----- ----- */
