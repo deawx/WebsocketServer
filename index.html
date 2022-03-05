@@ -117,10 +117,11 @@
     </div>
   </div>
 
+  <!--
   <form id='form' action=''>
     <input id='input' autocomplete='off' /><button>Send</button>
   </form>
-
+  -->
   <div id="footer" class="mt-3" style="text-align:center; margin: 0 auto; width: 50%; font-size: 16px;">Site developed by <a href="https://www.b-schwertfeger.de">Benjamin T. Schwertfeger</a> © 2022</div>
 
 
@@ -140,13 +141,13 @@
       }, 
       received_messages_count = 0;
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', input.value);
-        input.value = '';
-      }
-    });
+    // form.addEventListener('submit', (e) => {
+    //   e.preventDefault();
+    //   if (input.value) {
+    //     socket.emit('chat message', input.value);
+    //     input.value = '';
+    //   }
+    // });
 
     function handle_topic(data) {
       data = JSON.parse(data);
