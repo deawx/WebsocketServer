@@ -3,7 +3,7 @@ import json
 import time
 import numpy as np
 
-do_request = lambda payload: requests.post('http://localhost:3000/api/data', data={'data': json.dumps(payload)})
+do_request = lambda payload: requests.post('http://127.0.0.1:3000/api/data', data={'data': json.dumps(payload)})
 smiles: [str] = ['bad','medium', 'good']
 gender: [str] = ['male', 'female', 'wtf']
 pleasures: [str] = ['happy', 'bored', 'funny', 'sweet', 'annoying']

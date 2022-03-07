@@ -60,11 +60,15 @@ app.get('/api/data', (req, res) => {
     }
 })
 app.post('/api/data', (req, res) => {
-    const data = req.body.data;
-    if (typeof JSON.parse(data) === undefined) res.status(400).end();
+    const body = req.body;
+    const data = body.data;
+
+    if (typeof data === undefined) res.status(400).end();
     else {
-        // try {
-        io.emit('chat message', JSON.stringify(req.body.data))
+        // if(typeof JSON.parse(data) === undefined
+        // try{
+        console.log(data)
+        io.emit('chat message', JSON.stringify(data))
         res.status(200).end();
         // } catch (e) {
         //     res.json({
